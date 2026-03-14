@@ -127,14 +127,13 @@ function formatResult(scaledInt, isNegative, scale) {
  * @param {string|number} value        - The value to round
  * @param {number}        [scale=2]    - Number of decimal places (must be >= 0)
  * @param {string}        [roundingMode=RoundingMode.HALF_UP] - The rounding mode to use
- * @returns {string} The rounded value as a decimal string
- * @throws {TypeError}  if value is null or undefined
- * @throws {RangeError} if scale is negative
+ * @returns {string|number} The rounded value as a decimal string, or NaN if value is not a valid number
+ * @throws {RangeError} if scale is negative or not an integer
  * @throws {Error}      if an unknown roundingMode is provided
  */
 function round(value, scale = DEFAULT_SCALE, roundingMode = DEFAULT_ROUNDING_MODE) {
     if (value === null || value === undefined) {
-        throw new TypeError('value must not be null or undefined');
+        return NaN;
     }
     if (scale < 0 || !Number.isInteger(scale)) {
         throw new RangeError(`scale must be a non-negative integer, got: ${scale}`);
@@ -142,9 +141,9 @@ function round(value, scale = DEFAULT_SCALE, roundingMode = DEFAULT_ROUNDING_MOD
 
     const valueStr = typeof value === 'number' ? value.toString() : String(value);
 
-    // Validate that valueStr is a valid decimal number
+    // Non-numeric strings propagate as NaN — no silent zero masking of bad data
     if (!/^-?\d+(\.\d+)?$/.test(valueStr)) {
-        throw new TypeError(`value is not a valid decimal number: ${valueStr}`);
+        return NaN;
     }
 
     const { scaledIntPart, roundDigit, isNegative } = parseForRounding(valueStr, scale);

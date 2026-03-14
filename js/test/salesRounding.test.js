@@ -41,16 +41,16 @@ describe('round(value)', () => {
         expect(round(0)).toBe('0.00');
     });
 
-    test('throws TypeError for null', () => {
-        expect(() => round(null)).toThrow(TypeError);
+    test('returns NaN for null', () => {
+        expect(round(null)).toBeNaN();
     });
 
-    test('throws TypeError for undefined', () => {
-        expect(() => round(undefined)).toThrow(TypeError);
+    test('returns NaN for undefined', () => {
+        expect(round(undefined)).toBeNaN();
     });
 
-    test('throws TypeError for non-numeric string', () => {
-        expect(() => round('abc')).toThrow(TypeError);
+    test('returns NaN for non-numeric string', () => {
+        expect(round('abc')).toBeNaN();
     });
 });
 
