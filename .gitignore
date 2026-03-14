@@ -1,0 +1,7 @@
+*.class
+# Java build artifacts
+java/target/
+
+# JavaScript dependencies and coverage
+js/node_modules/
+js/coverage/
