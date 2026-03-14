@@ -3,6 +3,16 @@
 
 A utility library for rounding monetary values using [BigDecimal](https://docs.oracle.com/en/java/docs/api/java.base/java/math/BigDecimal.html) semantics, available for Java and JavaScript.
 
+## The Name
+
+`0x33bd` = **33rd Birthday** 🎂
+
+- `0x` — hex prefix, because why not make a personal milestone look like a memory address
+- `33` — age 33
+- `bd` — birthday
+
+This library was written to commemorate the occasion. GitHub Copilot cracked the lore entirely unprompted — Gemini called it a spook for doing so.
+
 ## Features
 
 - Rounds to 2 decimal places by default (standard for most currencies)
