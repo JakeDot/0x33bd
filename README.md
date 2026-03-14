@@ -45,6 +45,6 @@ console.log(SalesRoundingDecimal.coerce(null));      // 0
 
 - **Universal Wrapper**: handles `String`, `Number`, and (Java) `BigDecimal` identically during construction.
 - **Fluent API**: `withSalesScale` returns a `SalesRoundingDecimal`, keeping you in the Sales namespace.
-- **Fail-Fast**: bad string inputs propagate as `NaN` (JS) / throw `NumberFormatException` (Java) — never silently become `0`.
+- **Fail-Fast**: invalid string inputs propagate as `NaN` (JS) / throw `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` normalize to `0` by convention (matching Java's `coerce` behaviour).
 - **Immutable**: instances are frozen (`Object.freeze` in JS, `BigDecimal` semantics in Java).
 - **KISS**: one constructor, one chain method, one coerce helper — nothing more.
