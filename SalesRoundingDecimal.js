@@ -16,6 +16,10 @@ const RoundingMode = Object.freeze({
  * A lightweight recreation of our Java BigDecimal decorator.
  */
 class SalesRoundingDecimal {
+    constructor(val) {
+        // Normalization logic: parseFloat handles strings, numbers pass through.
+        // No default 0 logic; bad strings result in NaN for fail-fast behavior.
+        this.value = typeof val === "number" ? val : parseFloat(val);
     /**
      * Universal constructor that coerces any input into a normalized number
      * via internal coercion.
@@ -29,6 +33,8 @@ class SalesRoundingDecimal {
     }
 
     /**
+     * A fluent "Chain" method that applies a scale and returns a
+     * new SalesRoundingDecimal instead of a raw number.
      * Internal coercion logic to ensure any numeric or string input is
      * converted to a format JS can safely use.
      * Matches the Java "coerce" philosophy.
@@ -69,6 +75,11 @@ class SalesRoundingDecimal {
                 break;
 
             default:
+                throw new Error(`Unsupported RoundingMode: ${roundingMode}`);
+        }
+
+        const finalValue = typeof result === 'number' ? result.toFixed(newScale) : result;
+        return new SalesRoundingDecimal(finalValue);
                 result = this.value;
         }
 

@@ -3,6 +3,10 @@ import java.math.RoundingMode;
 
 /**
  * <p><b>SalesRoundingDecimal</b> is a "KISS" decorator for {@link BigDecimal}.</p>
+ * 
+ * <p>It provides a <b>Universal Normalization</b> constructor via internal coercion 
+ * and a fluent {@link #withSalesScale(int, RoundingMode)} method.</p>
+ * 
  *
  * <p>It provides a <b>Universal Normalization</b> constructor via internal coercion
  * and a fluent {@link #withSalesScale(int, RoundingMode)} method to keep logic in the Sales namespace.</p>
@@ -18,6 +22,9 @@ import java.math.RoundingMode;
 public class SalesRoundingDecimal extends BigDecimal {
 
     /**
+     * <p>Universal constructor that coerces any {@link Object} into a normalized string 
+     * before calling the {@link BigDecimal} constructor.</p>
+     * 
      * <p>Universal constructor that coerces any {@link Object} into a normalized string
      * before calling the {@link BigDecimal} constructor.</p>
      *
@@ -28,6 +35,9 @@ public class SalesRoundingDecimal extends BigDecimal {
     }
 
     /**
+     * <p>A fluent "Chain" method that applies a scale and returns a 
+     * <b>SalesRoundingDecimal</b> instead of a base {@link BigDecimal}.</p>
+     * 
      * <p>A fluent "Chain" method that applies a scale and returns a
      * <b>SalesRoundingDecimal</b> instead of a base {@link BigDecimal}.</p>
      *
@@ -40,6 +50,7 @@ public class SalesRoundingDecimal extends BigDecimal {
     }
 
     /**
+     * Internal coercion logic to ensure any numeric or string input is 
      * Internal coercion logic to ensure any numeric or string input is
      * converted to a format {@link BigDecimal} can safely parse.
      */
