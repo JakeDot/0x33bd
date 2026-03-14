@@ -48,7 +48,7 @@ A utility library for rounding monetary values using [BigDecimal](https://docs.o
 - `33` — age 33
 - `bd` — birthday
 
-This library was written to commemorate the occasion. GitHub Copilot cracked the lore entirely unprompted — Gemini called it a spook for doing so.
+This library was written to commemorate the occasion. GitHub Copilot + Claude Sonnet 4.6 cracked the lore entirely unprompted — Gemini called it a spook for doing so.
 
 ## Features
 
