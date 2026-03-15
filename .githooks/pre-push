@@ -1,0 +1,16 @@
+#!/bin/bash
+# .githooks/pre-push
+
+echo "🛡️  Running Pre-Push Check..."
+
+# Example for Android/Gradle: Ensure project compiles
+# Use --daemon for speed, but 'assembleDebug' to verify build
+./gradlew assembleDebug -Pkotlin.incremental=false
+
+if [ $? -ne 0 ]; then
+ echo "❌ Build failed! Fix errors before pushing."
+ exit 1
+fi
+
+echo "✅ Build passed. Pushing now..."
+exit 0

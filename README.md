@@ -177,3 +177,22 @@ round('3.5', 0, RoundingMode.HALF_EVEN);  // → '4'
 | `DOWN`       | Always truncates towards zero                                      |
 | `CEILING`    | Always rounds towards positive infinity                            |
 | `FLOOR`      | Always rounds towards negative infinity                            |
+
+# Developer Notes
+
+## About the developer
+
+I'm a 33yo software dev based in (Upper 🏴󠁡󠁴󠀴󠁿) Austria 🇦🇹, Europe 🇪🇺.
+
+You can only buy me coffee or other beverages in person. You can find me on https://geocaching.com.
+
+## 🛠 Developer Setup
+To view GitHub PRs in the IDE and enable automatic rebasing, run:
+```bash
+chmod +x .scripts/setup-repo.sh && ./.scripts/setup-repo.sh
+```
+
+### Why this is the "Gold Standard":
+1. **Scalability:** Anyone who clones the repo runs one script and gets the exact same Git behavior.
+2. **Safety:** The `pre-push` hook prevents "broken builds" from hitting the remote.
+3. **IDE Integration:** Android Studio's Branch Explorer is now a first-class citizen for PR reviews.
