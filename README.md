@@ -6,7 +6,7 @@ Entirely vibe coded using Gemini Flash 3, Claude Sonnet 4.6; Haiku 4.5. Based on
 
 ## Core Principles
 - **Universal Normalization**: Both implementations handle Strings, Numbers, and Decimals identically.
-- **Fail-Fast**: Invalid inputs result in errors (Java) or NaN (JS) rather than silent defaults.
+- **Fail-Fast**: Invalid inputs result in errors — non-numeric strings throw on both sides.
 - **Fluent API**: Intent-signaling chaining for scaling and rounding.
 - **Immutability**: Everything is "frozen" or immutable by design.
 
@@ -73,6 +73,10 @@ SalesRoundingDecimal price = new SalesRoundingDecimal("19.995");
 SalesRoundingDecimal total = price.withSalesScale(2, RoundingMode.HALF_UP);
 // → 20.00
 
+// Static convenience factory — round in a single expression
+SalesRoundingDecimal rounded = SalesRoundingDecimal.round("19.995");
+// → 20.00
+
 // Works with BigDecimal arithmetic
 SalesRoundingDecimal result = new SalesRoundingDecimal(price.add(tax))
                                   .withSalesScale(2, RoundingMode.HALF_UP);
@@ -81,6 +85,8 @@ SalesRoundingDecimal result = new SalesRoundingDecimal(price.add(tax))
 ## JavaScript
 
 ```javascript
+const { SalesRoundingDecimal, RoundingMode } = require('./SalesRoundingDecimal');
+
 // Universal construction — accepts number, string, or numeric string
 const price = new SalesRoundingDecimal("19.995");
 
@@ -88,13 +94,18 @@ const price = new SalesRoundingDecimal("19.995");
 const total = price.withSalesScale(2, RoundingMode.HALF_UP);
 console.log(total.toString()); // "20.00"
 
-// Fail-fast: bad strings produce NaN, never a silent 0
-const bad = new SalesRoundingDecimal("not-a-number");
-console.log(bad.withSalesScale(2).toString()); // "NaN"
+// Static convenience factory — round in a single expression
+console.log(SalesRoundingDecimal.round("19.995").toString()); // "20.00"
 
-// static coerce is available for pre-processing
-console.log(SalesRoundingDecimal.coerce("19.995")); // "19.995"
-console.log(SalesRoundingDecimal.coerce(null));      // "0"
+// Fail-fast: bad strings throw TypeError, never a silent 0
+try {
+    new SalesRoundingDecimal("not-a-number");
+} catch (e) {
+    console.error(e.message); // SalesRoundingDecimal: invalid numeric value: "not-a-number"
+}
+
+// null/undefined normalise to "0" by convention
+console.log(SalesRoundingDecimal.coerce(null)); // "0"
 ```
 
 > **⚠ Precision note:** `SalesRoundingDecimal.js` uses `BigInt` arithmetic internally —
@@ -108,9 +119,9 @@ console.log(SalesRoundingDecimal.coerce(null));      // "0"
 
 - **Universal Wrapper**: handles `String`, `Number`, and (Java) `BigDecimal` identically during construction.
 - **Fluent API**: `withSalesScale` returns a `SalesRoundingDecimal`, keeping you in the Sales namespace.
-- **Fail-Fast**: invalid string inputs propagate as `NaN` (JS) / throw `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` normalize to `0` by convention (matching Java's `coerce` behaviour).
+- **Fail-Fast**: invalid string inputs throw `TypeError` (JS) / `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` normalize to `0` by convention.
 - **Immutable**: instances are frozen (`Object.freeze` in JS, `BigDecimal` semantics in Java).
-- **KISS**: one constructor, one chain method, one coerce helper — nothing more.
+- **KISS**: one constructor, one fluent chain method, one static coerce helper, and static `round()` convenience factories.
 - **Full Precision (JS)**: uses `BigInt` string arithmetic — zero floating-point rounding errors, all seven `RoundingMode` values supported, results identical to Java's `BigDecimal.setScale()`.
 
 ### Architecture Decision Records
@@ -119,35 +130,20 @@ Design trade-offs are documented in [`docs/adr/`](docs/adr/):
 
 - [ADR-001](docs/adr/ADR-001-single-utility-class-vs-decorator.md) — Single utility class vs. decorator pattern
 - [ADR-002](docs/adr/ADR-002-bigint-arithmetic-for-js-rounding.md) — BigInt arithmetic over floating-point in JavaScript
+
+---
+
+## Java
+
 ### Requirements
 - Java 17+
-- Maven 3.6+
 
-### Build & Test
+### Build
+
+`SalesRoundingDecimal` is a single source file — no build tool required (it extends `java.math.BigDecimal` from the JDK):
 
 ```bash
-cd java
-mvn test
-```
-
-### Usage
-
-```java
-import net.jakedot.salesrounding.SalesRounding;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
-// Round to 2 decimal places (HALF_UP)
-BigDecimal price = SalesRounding.round(new BigDecimal("19.995"));
-// → 20.00
-
-// Round to a custom scale
-BigDecimal qty = SalesRounding.round(new BigDecimal("1.2345"), 3);
-// → 1.235
-
-// Round with a custom rounding mode (e.g. banker's rounding)
-BigDecimal value = SalesRounding.round(new BigDecimal("2.5"), 0, RoundingMode.HALF_EVEN);
-// → 2
+javac SalesRoundingDecimal.java
 ```
 
 ---
@@ -155,31 +151,14 @@ BigDecimal value = SalesRounding.round(new BigDecimal("2.5"), 0, RoundingMode.HA
 ## JavaScript
 
 ### Requirements
-- Node.js 16+
-
-### Install & Test
-
-```bash
-cd js
-npm install
-npm test
-```
+- Node.js 14+
 
 ### Usage
 
+`SalesRoundingDecimal.js` is a standalone file with no external dependencies:
+
 ```js
-const { round, RoundingMode } = require('./src/salesRounding');
-
-// Round to 2 decimal places (HALF_UP)
-round('19.995');           // → '20.00'
-round(1.1);                // → '1.10'
-
-// Round to a custom scale
-round('1.2345', 3);        // → '1.235'
-
-// Round with a custom rounding mode (e.g. banker's rounding)
-round('2.5', 0, RoundingMode.HALF_EVEN);  // → '2'
-round('3.5', 0, RoundingMode.HALF_EVEN);  // → '4'
+const { SalesRoundingDecimal, RoundingMode } = require('./SalesRoundingDecimal');
 ```
 
 ### Rounding Modes

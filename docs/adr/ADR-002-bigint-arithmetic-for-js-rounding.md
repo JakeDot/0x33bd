@@ -8,7 +8,7 @@
 
 ## Context
 
-The original `SalesRoundingDecimal.js` (and early `salesRounding.js`) used JavaScript's native `Number` type with `Math.round`, `Math.floor`, and `Math.ceil` for rounding. This caused well-known floating-point precision bugs:
+The original `SalesRoundingDecimal.js` used JavaScript's native `Number` type with `Math.round`, `Math.floor`, and `Math.ceil` for rounding. This caused well-known floating-point precision bugs:
 
 ```js
 // Expected: 1.01  — Actual (float): 1.00

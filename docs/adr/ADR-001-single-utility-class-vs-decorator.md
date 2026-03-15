@@ -1,8 +1,8 @@
 # ADR-001: Single Utility Class vs. Decorator Pattern
 
-**Status:** Accepted  
+**Status:** Superseded — decorator pattern adopted as sole implementation  
 **Date:** 2026-03-15  
-**Context:** PR #7 — Consolidation of Java and JavaScript implementations
+**Context:** PR #7 — Consolidation of Java and JavaScript implementations; updated when `java/` and `js/` subdirectories were removed
 
 ---
 
@@ -19,22 +19,22 @@ Both shapes shipped in the repository (root-level `SalesRoundingDecimal.java` an
 
 ## Decision
 
-**Both APIs are retained and serve complementary purposes.**
+**The decorator pattern (`SalesRoundingDecimal`) is retained as the sole implementation. The static utility class (`SalesRounding`) and the `java/` and `js/` subdirectories have been removed.**
 
-| Concern | `SalesRoundingDecimal` (decorator) | `SalesRounding` (utility) |
-|---|---|---|
-| Input type | Any `Object` (coerced to String) | Strict `BigDecimal` |
-| Null handling | `null` → `"0"` (silent normalisation) | throws `NullPointerException` (fail-fast) |
-| Chaining | Fluent — stays in Sales namespace | Single expression — concise for one-off use |
-| Type safety | Looser | Stricter |
-| Typical caller | Code that receives mixed data types | Code that already uses `BigDecimal` |
+| Concern | `SalesRoundingDecimal` (decorator) |
+|---|---|
+| Input type | Any `Object` (coerced to String) |
+| Null handling | `null` → `"0"` (silent normalisation) |
+| Invalid input | throws `NumberFormatException` (Java) / `TypeError` (JS) |
+| Chaining | Fluent — stays in Sales namespace |
+| Static factory | `SalesRoundingDecimal.round(val)` for single-expression use |
 
-`SalesRoundingDecimal.round(Object)` static convenience methods were added (Issue #11) so callers can round in a single expression without constructing an instance manually.
+Static `round()` convenience methods were added (Issue #11) so callers can round in a single expression without constructing an instance manually.
 
 ---
 
 ## Consequences
 
-- Existing call-sites using `SalesRounding.round()` are unaffected.
-- New call-sites that deal with raw strings or numbers can use `SalesRoundingDecimal.round("19.995")` directly.
-- The decorator's coerce-to-zero behaviour for `null` intentionally differs from the utility's NPE: match whichever contract is appropriate for the use-case.
+- A single, consistent API surface in both Java and JavaScript.
+- Callers that deal with raw strings or numbers use `SalesRoundingDecimal.round("19.995")` directly.
+- The `SalesRounding` utility class is no longer available; any call-sites using it should migrate to `SalesRoundingDecimal.round()`.
