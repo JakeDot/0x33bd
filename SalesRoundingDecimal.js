@@ -103,6 +103,12 @@ function _formatResult(scaledInt, isNegative, scale) {
  * Uses BigInt arithmetic internally to avoid floating-point precision loss.
  */
 class SalesRoundingDecimal {
+    /** Default scale for sales rounding (2 decimal places, i.e. cents). */
+    static DEFAULT_SCALE = 2;
+
+    /** Default rounding mode for sales rounding (HALF_UP). */
+    static DEFAULT_ROUNDING_MODE = RoundingMode.HALF_UP;
+
     constructor(val) {
         this.value = SalesRoundingDecimal.coerce(val);
         Object.freeze(this);
