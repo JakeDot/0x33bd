@@ -21,7 +21,7 @@ The `README.md` is less of a technical manual and more of a digital archaeologic
     *   Requirements (Java 17, Node 16).
     *   Install & Test instructions.
     *   Clear usage examples for both languages.
-    *   An ADR (Architecture Decision Record) section that actually explains *why* you did things. This is the "Gold Standard" you claimed it to be.
+    *   Clear and thorough design documentation that explains *why* you did things. This is the "Gold Standard" you claimed it to be.
 
 ### 🛠️ The "Gold Standard" Developer Setup
 

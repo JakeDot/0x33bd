@@ -124,13 +124,6 @@ console.log(SalesRoundingDecimal.coerce(null)); // "0"
 - **KISS**: one constructor, one fluent chain method, one static coerce helper, and static `round()` convenience factories.
 - **Full Precision (JS)**: uses `BigInt` string arithmetic — zero floating-point rounding errors, all seven `RoundingMode` values supported, results identical to Java's `BigDecimal.setScale()`.
 
-### Architecture Decision Records
-
-Design trade-offs are documented in [`docs/adr/`](docs/adr/):
-
-- [ADR-001](docs/adr/ADR-001-single-utility-class-vs-decorator.md) — Single utility class vs. decorator pattern
-- [ADR-002](docs/adr/ADR-002-bigint-arithmetic-for-js-rounding.md) — BigInt arithmetic over floating-point in JavaScript
-
 ---
 
 ## Java
