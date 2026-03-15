@@ -2,6 +2,8 @@
 
 A lightweight, "KISS" utility for consistent decimal handling across Java and JavaScript, specifically tailored for sales projects.
 
+Entirely vibe coded using Gemini Flash 3, Claude Sonnet 4.6; Haiku 4.5. Based on in-memory 🧠 representation of decimals sample project of pi day at Frank's.
+
 ## Core Principles
 - **Universal Normalization**: Both implementations handle Strings, Numbers, and Decimals identically.
 - **Fail-Fast**: Invalid inputs result in errors (Java) or NaN (JS) rather than silent defaults.
