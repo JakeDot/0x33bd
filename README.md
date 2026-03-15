@@ -83,16 +83,21 @@ const price = new SalesRoundingDecimal("19.995");
 
 // Fluent chain method — returns a new SalesRoundingDecimal (immutable)
 const total = price.withSalesScale(2, RoundingMode.HALF_UP);
-console.log(total.toString()); // "20"
+console.log(total.toString()); // "20.00"
 
 // Fail-fast: bad strings produce NaN, never a silent 0
 const bad = new SalesRoundingDecimal("not-a-number");
 console.log(bad.withSalesScale(2).toString()); // "NaN"
 
 // static coerce is available for pre-processing
-console.log(SalesRoundingDecimal.coerce("19.995")); // 19.995
-console.log(SalesRoundingDecimal.coerce(null));      // 0
+console.log(SalesRoundingDecimal.coerce("19.995")); // "19.995"
+console.log(SalesRoundingDecimal.coerce(null));      // "0"
 ```
+
+> **⚠ Precision note:** `SalesRoundingDecimal.js` uses `BigInt` arithmetic internally —
+> **not** `parseFloat` or `Math.round`. This avoids the classic floating-point trap where
+> `1.005` rounds down to `1.00` instead of `1.01`. Always pass values as **strings** when
+> the source is a decimal literal to preserve full precision (e.g. `"1.005"`, not `1.005`).
 
 ---
 
@@ -103,6 +108,14 @@ console.log(SalesRoundingDecimal.coerce(null));      // 0
 - **Fail-Fast**: invalid string inputs propagate as `NaN` (JS) / throw `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` normalize to `0` by convention (matching Java's `coerce` behaviour).
 - **Immutable**: instances are frozen (`Object.freeze` in JS, `BigDecimal` semantics in Java).
 - **KISS**: one constructor, one chain method, one coerce helper — nothing more.
+- **Full Precision (JS)**: uses `BigInt` string arithmetic — zero floating-point rounding errors, all seven `RoundingMode` values supported, results identical to Java's `BigDecimal.setScale()`.
+
+### Architecture Decision Records
+
+Design trade-offs are documented in [`docs/adr/`](docs/adr/):
+
+- [ADR-001](docs/adr/ADR-001-single-utility-class-vs-decorator.md) — Single utility class vs. decorator pattern
+- [ADR-002](docs/adr/ADR-002-bigint-arithmetic-for-js-rounding.md) — BigInt arithmetic over floating-point in JavaScript
 ### Requirements
 - Java 17+
 - Maven 3.6+
