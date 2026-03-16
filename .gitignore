@@ -6,3 +6,12 @@ sample/java/out/
 # JavaScript dependencies and coverage
 js/node_modules/
 js/coverage/
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+# Ignore Kotlin plugin data
+.kotlin
