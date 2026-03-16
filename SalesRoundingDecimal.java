@@ -26,7 +26,7 @@ public class SalesRoundingDecimal extends BigDecimal {
      * @throws NumberFormatException if {@code val} is {@code null} or not a valid decimal
      */
     public SalesRoundingDecimal(String val) {
-        super(requireValidDecimalString(val));
+        super(coerce(val));
     }
 
     /**
@@ -41,7 +41,7 @@ public class SalesRoundingDecimal extends BigDecimal {
      *                               {@link BigDecimal} constructor)
      */
     public SalesRoundingDecimal(Number val) {
-        super(toDecimalString(val));
+        super(coerce(val));
     }
 
     /**
@@ -105,27 +105,35 @@ public class SalesRoundingDecimal extends BigDecimal {
     }
 
     /**
-     * Converts a {@link Number} to a plain decimal string suitable for
-     * passing to the {@link BigDecimal} constructor.
-     * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
-     * scientific-notation representation; all other {@link Number} subtypes use
-     * {@link Object#toString()}.
+     * Normalises a {@link String} input to a canonical decimal string.
+     * Throws {@link NumberFormatException} for {@code null} — matching
+     * JavaScript's {@code coerce()} fail-fast contract.
      *
+     * @param val the string representation of the decimal value
+     * @return the validated string
      * @throws NumberFormatException if {@code val} is {@code null}
      */
-    private static String toDecimalString(Number val) {
+    public static String coerce(String val) {
         if (val == null) throw new NumberFormatException("null is not a valid numeric value");
-        if (val instanceof BigDecimal bd) return bd.toPlainString();
-        return val.toString();
+        return val;
     }
 
     /**
-     * Validates that {@code val} is a non-{@code null} string and returns it.
+     * Normalises a {@link Number} input to a canonical decimal string suitable
+     * for passing to the {@link BigDecimal} constructor.
+     * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
+     * scientific-notation representation; all other {@link Number} subtypes use
+     * {@link Object#toString()}.
+     * Throws {@link NumberFormatException} for {@code null} — matching
+     * JavaScript's {@code coerce()} fail-fast contract.
      *
+     * @param val the numeric value
+     * @return a plain decimal string
      * @throws NumberFormatException if {@code val} is {@code null}
      */
-    private static String requireValidDecimalString(String val) {
+    public static String coerce(Number val) {
         if (val == null) throw new NumberFormatException("null is not a valid numeric value");
-        return val;
+        if (val instanceof BigDecimal bd) return bd.toPlainString();
+        return val.toString();
     }
 }

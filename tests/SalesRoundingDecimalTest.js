@@ -1,229 +1,229 @@
 /**
- * Test suite for SalesRoundingDecimal (JavaScript).
+ * Manual test suite for SalesRoundingDecimal (JavaScript).
  *
- * Uses the Node.js built-in test runner (node:test) — no external dependencies.
+ * Vanilla JS — no test framework, no external dependencies.
  *
  * Run from the repo root:
- *   node --test tests/SalesRoundingDecimalTest.js
+ *   node tests/SalesRoundingDecimalTest.js
  */
-
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
 
 import { SalesRoundingDecimal, RoundingMode } from '../SalesRoundingDecimal.js';
 
-// ─── Constructor ─────────────────────────────────────────────────────────────
+let passed = 0;
+let failed = 0;
 
-test('Constructor: parses a valid decimal string', () => {
-    const d = new SalesRoundingDecimal('19.995');
-    assert.equal(d.toString(), '19.995');
-});
+// ─── Assertion helpers ────────────────────────────────────────────────────────
 
-test('Constructor: parses an integer string', () => {
-    const d = new SalesRoundingDecimal('42');
-    assert.equal(d.toString(), '42');
-});
+function assertEquals(expected, actual, label) {
+    if (expected === actual) {
+        console.log('  ✔ ' + label);
+        passed++;
+    } else {
+        console.log('  ✘ ' + label + ' — expected: ' + expected + ', got: ' + actual);
+        failed++;
+    }
+}
 
-test('Constructor: parses zero', () => {
-    const d = new SalesRoundingDecimal('0');
-    assert.equal(d.toString(), '0');
-});
+function assertTrue(value, label) {
+    if (value) {
+        console.log('  ✔ ' + label);
+        passed++;
+    } else {
+        console.log('  ✘ ' + label + ' — expected truthy, got: ' + value);
+        failed++;
+    }
+}
 
-test('Constructor: parses a negative decimal string', () => {
-    const d = new SalesRoundingDecimal('-5.5');
-    assert.equal(d.toString(), '-5.5');
-});
+function assertThrows(expectedType, fn, label) {
+    try {
+        fn();
+        console.log('  ✘ ' + label + ' — expected ' + expectedType.name + ' but no error was thrown');
+        failed++;
+    } catch (e) {
+        if (e instanceof expectedType) {
+            console.log('  ✔ ' + label);
+            passed++;
+        } else {
+            console.log('  ✘ ' + label + ' — expected ' + expectedType.name
+                + ' but got ' + e.constructor.name + ': ' + e.message);
+            failed++;
+        }
+    }
+}
 
-test('Constructor: parses a number primitive', () => {
-    const d = new SalesRoundingDecimal(19);
-    assert.equal(d.toString(), '19');
-});
+// ─── Test groups ──────────────────────────────────────────────────────────────
 
-test('Constructor: throws RangeError for null', () => {
-    assert.throws(() => new SalesRoundingDecimal(null), RangeError);
-});
+function testConstructor() {
+    console.log('Constructor:');
+    assertEquals('19.995', new SalesRoundingDecimal('19.995').toString(), 'parses valid decimal string');
+    assertEquals('42', new SalesRoundingDecimal('42').toString(), 'parses integer string');
+    assertEquals('0', new SalesRoundingDecimal('0').toString(), 'parses zero');
+    assertEquals('-5.5', new SalesRoundingDecimal('-5.5').toString(), 'parses negative decimal string');
+    assertEquals('19', new SalesRoundingDecimal(19).toString(), 'parses number primitive');
 
-test('Constructor: throws RangeError for undefined', () => {
-    assert.throws(() => new SalesRoundingDecimal(undefined), RangeError);
-});
+    assertThrows(RangeError, () => new SalesRoundingDecimal(null), 'null throws');
+    assertThrows(RangeError, () => new SalesRoundingDecimal(undefined), 'undefined throws');
+    assertThrows(RangeError, () => new SalesRoundingDecimal('not-a-number'), 'non-numeric string throws');
+    assertThrows(RangeError, () => new SalesRoundingDecimal(NaN), 'NaN throws');
+    assertThrows(RangeError, () => new SalesRoundingDecimal(Infinity), 'Infinity throws');
+    assertTrue(Object.isFrozen(new SalesRoundingDecimal('1.5')), 'instance is frozen (immutable)');
+}
 
-test('Constructor: throws RangeError for non-numeric string', () => {
-    assert.throws(() => new SalesRoundingDecimal('not-a-number'), RangeError);
-});
+function testCoerce() {
+    console.log('coerce (static):');
+    assertEquals('19.995', SalesRoundingDecimal.coerce('19.995'),
+        'returns canonical string for a valid decimal string');
+    assertEquals('7', SalesRoundingDecimal.coerce(7), 'returns string for a number');
 
-test('Constructor: throws RangeError for NaN', () => {
-    assert.throws(() => new SalesRoundingDecimal(NaN), RangeError);
-});
+    assertThrows(RangeError, () => SalesRoundingDecimal.coerce(null), 'null throws');
+    assertThrows(RangeError, () => SalesRoundingDecimal.coerce(undefined), 'undefined throws');
+}
 
-test('Constructor: throws RangeError for Infinity', () => {
-    assert.throws(() => new SalesRoundingDecimal(Infinity), RangeError);
-});
+function testWithSalesScale() {
+    console.log('withSalesScale (HALF_UP):');
+    assertEquals('20.00',
+        new SalesRoundingDecimal('19.995').withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        '19.995 → 20.00 (HALF_UP)');
+    assertEquals('19.99',
+        new SalesRoundingDecimal('19.994').withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        '19.994 → 19.99 (HALF_UP)');
+    assertEquals('1.235',
+        new SalesRoundingDecimal('1.2345').withSalesScale(3, RoundingMode.HALF_UP).toString(),
+        '1.2345 → 1.235 (HALF_UP, scale 3)');
+    assertEquals('-20.00',
+        new SalesRoundingDecimal('-19.995').withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        '-19.995 → -20.00 (HALF_UP)');
+    assertTrue(
+        new SalesRoundingDecimal('1.5').withSalesScale(2, RoundingMode.HALF_UP) instanceof SalesRoundingDecimal,
+        'returns a SalesRoundingDecimal instance');
+    assertEquals('2.00',
+        new SalesRoundingDecimal('1.995').withSalesScale(2).toString(),
+        'defaults to HALF_UP when no mode provided');
+}
 
-test('Constructor: instance is frozen (immutable)', () => {
-    const d = new SalesRoundingDecimal('1.5');
-    assert.ok(Object.isFrozen(d));
-});
+function testRoundingModes() {
+    console.log('Rounding modes:');
 
-// ─── coerce (static) ─────────────────────────────────────────────────────────
+    // UP — always away from zero
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.21').withSalesScale(1, RoundingMode.UP).toString(),
+        'UP: 1.21 → 1.3');
+    assertEquals('1.2',
+        new SalesRoundingDecimal('1.2').withSalesScale(1, RoundingMode.UP).toString(),
+        'UP: no rounding when exact');
 
-test('coerce: returns canonical string for a valid decimal string', () => {
-    assert.equal(SalesRoundingDecimal.coerce('19.995'), '19.995');
-});
+    // DOWN — always towards zero (truncate)
+    assertEquals('1.2',
+        new SalesRoundingDecimal('1.29').withSalesScale(1, RoundingMode.DOWN).toString(),
+        'DOWN: 1.29 → 1.2');
 
-test('coerce: returns string for a number', () => {
-    assert.equal(SalesRoundingDecimal.coerce(7), '7');
-});
+    // CEILING — towards positive infinity
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.21').withSalesScale(1, RoundingMode.CEILING).toString(),
+        'CEILING: 1.21 → 1.3');
+    assertEquals('-1.2',
+        new SalesRoundingDecimal('-1.29').withSalesScale(1, RoundingMode.CEILING).toString(),
+        'CEILING: -1.29 → -1.2');
 
-test('coerce: throws RangeError for null', () => {
-    assert.throws(() => SalesRoundingDecimal.coerce(null), RangeError);
-});
+    // FLOOR — towards negative infinity
+    assertEquals('1.2',
+        new SalesRoundingDecimal('1.29').withSalesScale(1, RoundingMode.FLOOR).toString(),
+        'FLOOR: 1.29 → 1.2');
+    assertEquals('-1.3',
+        new SalesRoundingDecimal('-1.21').withSalesScale(1, RoundingMode.FLOOR).toString(),
+        'FLOOR: -1.21 → -1.3');
 
-test('coerce: throws RangeError for undefined', () => {
-    assert.throws(() => SalesRoundingDecimal.coerce(undefined), RangeError);
-});
+    // HALF_UP — ties away from zero
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.25').withSalesScale(1, RoundingMode.HALF_UP).toString(),
+        'HALF_UP: 1.25 → 1.3');
 
-// ─── withSalesScale ───────────────────────────────────────────────────────────
+    // HALF_DOWN — ties towards zero
+    assertEquals('1.2',
+        new SalesRoundingDecimal('1.25').withSalesScale(1, RoundingMode.HALF_DOWN).toString(),
+        'HALF_DOWN: 1.25 → 1.2');
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.26').withSalesScale(1, RoundingMode.HALF_DOWN).toString(),
+        'HALF_DOWN: 1.26 → 1.3');
 
-test('withSalesScale: 19.995 → 20.00 (HALF_UP, scale 2)', () => {
-    const result = new SalesRoundingDecimal('19.995').withSalesScale(2, RoundingMode.HALF_UP);
-    assert.equal(result.toString(), '20.00');
-});
+    // HALF_EVEN — banker's rounding
+    assertEquals('1.2',
+        new SalesRoundingDecimal('1.25').withSalesScale(1, RoundingMode.HALF_EVEN).toString(),
+        'HALF_EVEN: 1.25 → 1.2 (even)');
+    assertEquals('1.4',
+        new SalesRoundingDecimal('1.35').withSalesScale(1, RoundingMode.HALF_EVEN).toString(),
+        'HALF_EVEN: 1.35 → 1.4 (even)');
+}
 
-test('withSalesScale: 19.994 → 19.99 (HALF_UP, scale 2)', () => {
-    const result = new SalesRoundingDecimal('19.994').withSalesScale(2, RoundingMode.HALF_UP);
-    assert.equal(result.toString(), '19.99');
-});
+function testStaticRoundWithDefaults() {
+    console.log('round(String) / round(number) — default scale & mode:');
+    assertEquals('20.00', SalesRoundingDecimal.round('19.995').toString(), 'round(String) → 20.00');
+    assertEquals('5.00', SalesRoundingDecimal.round(5).toString(), 'round(number 5) → 5.00');
+}
 
-test('withSalesScale: 1.2345 → 1.235 (HALF_UP, scale 3)', () => {
-    const result = new SalesRoundingDecimal('1.2345').withSalesScale(3, RoundingMode.HALF_UP);
-    assert.equal(result.toString(), '1.235');
-});
+function testStaticRoundWithCustomScaleAndMode() {
+    console.log('round(val, scale, mode):');
+    assertEquals('1.235',
+        SalesRoundingDecimal.round('1.2345', 3, RoundingMode.HALF_UP).toString(),
+        'round(String, 3, HALF_UP) → 1.235');
+    assertEquals('1.2',
+        SalesRoundingDecimal.round('1.25', 1, RoundingMode.HALF_DOWN).toString(),
+        'round(String, 1, HALF_DOWN) → 1.2');
+    assertTrue(SalesRoundingDecimal.round('1.5') instanceof SalesRoundingDecimal,
+        'round returns a SalesRoundingDecimal instance');
+}
 
-test('withSalesScale: -19.995 → -20.00 (HALF_UP, scale 2)', () => {
-    const result = new SalesRoundingDecimal('-19.995').withSalesScale(2, RoundingMode.HALF_UP);
-    assert.equal(result.toString(), '-20.00');
-});
+function testDefaultConstants() {
+    console.log('Default constants:');
+    assertEquals(2, SalesRoundingDecimal.DEFAULT_SCALE, 'DEFAULT_SCALE = 2');
+    assertEquals(RoundingMode.HALF_UP, SalesRoundingDecimal.DEFAULT_ROUNDING_MODE,
+        'DEFAULT_ROUNDING_MODE = HALF_UP');
+}
 
-test('withSalesScale: returns a SalesRoundingDecimal instance', () => {
-    const result = new SalesRoundingDecimal('1.5').withSalesScale(2, RoundingMode.HALF_UP);
-    assert.ok(result instanceof SalesRoundingDecimal);
-});
+function testToStringAndValueOf() {
+    console.log('toString / valueOf:');
+    assertEquals('19.99', new SalesRoundingDecimal('19.99').toString(),
+        'toString returns the decimal string representation');
+    assertEquals(19.99, +new SalesRoundingDecimal('19.99'), 'valueOf returns a Number');
+}
 
-test('withSalesScale: defaults to HALF_UP when no mode provided', () => {
-    const result = new SalesRoundingDecimal('1.995').withSalesScale(2);
-    assert.equal(result.toString(), '2.00');
-});
+function testEdgeCases() {
+    console.log('Edge cases:');
+    assertEquals('0.00',
+        new SalesRoundingDecimal('0').withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        'zero scales to 0.00');
+    assertEquals('1000.00',
+        new SalesRoundingDecimal('1000').withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        'large integer scales to 1000.00');
+    assertEquals('1.00',
+        new SalesRoundingDecimal('1.005').withSalesScale(2, RoundingMode.HALF_DOWN).toString(),
+        '1.005 → 1.00 (HALF_DOWN)');
+    assertEquals('1.01',
+        new SalesRoundingDecimal('1.005').withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        '1.005 → 1.01 (HALF_UP)');
+    assertEquals('3',
+        new SalesRoundingDecimal('2.7').withSalesScale(0, RoundingMode.HALF_UP).toString(),
+        'scale 0 rounds to integer');
+}
 
-// ─── Rounding modes ───────────────────────────────────────────────────────────
+// ─── Entry point ──────────────────────────────────────────────────────────────
 
-test('RoundingMode UP: 1.21 → 1.3', () => {
-    assert.equal(new SalesRoundingDecimal('1.21').withSalesScale(1, RoundingMode.UP).toString(), '1.3');
-});
+console.log('=== SalesRoundingDecimalTest (JS) ===\n');
 
-test('RoundingMode UP: no rounding when exact', () => {
-    assert.equal(new SalesRoundingDecimal('1.2').withSalesScale(1, RoundingMode.UP).toString(), '1.2');
-});
+testConstructor();
+testCoerce();
+testWithSalesScale();
+testRoundingModes();
+testStaticRoundWithDefaults();
+testStaticRoundWithCustomScaleAndMode();
+testDefaultConstants();
+testToStringAndValueOf();
+testEdgeCases();
 
-test('RoundingMode DOWN: 1.29 → 1.2 (truncate)', () => {
-    assert.equal(new SalesRoundingDecimal('1.29').withSalesScale(1, RoundingMode.DOWN).toString(), '1.2');
-});
-
-test('RoundingMode CEILING: 1.21 → 1.3 (positive)', () => {
-    assert.equal(new SalesRoundingDecimal('1.21').withSalesScale(1, RoundingMode.CEILING).toString(), '1.3');
-});
-
-test('RoundingMode CEILING: -1.29 → -1.2 (negative, towards +∞)', () => {
-    assert.equal(new SalesRoundingDecimal('-1.29').withSalesScale(1, RoundingMode.CEILING).toString(), '-1.2');
-});
-
-test('RoundingMode FLOOR: 1.29 → 1.2 (positive)', () => {
-    assert.equal(new SalesRoundingDecimal('1.29').withSalesScale(1, RoundingMode.FLOOR).toString(), '1.2');
-});
-
-test('RoundingMode FLOOR: -1.21 → -1.3 (negative, towards -∞)', () => {
-    assert.equal(new SalesRoundingDecimal('-1.21').withSalesScale(1, RoundingMode.FLOOR).toString(), '-1.3');
-});
-
-test('RoundingMode HALF_UP: 1.25 → 1.3 (tie rounds up)', () => {
-    assert.equal(new SalesRoundingDecimal('1.25').withSalesScale(1, RoundingMode.HALF_UP).toString(), '1.3');
-});
-
-test('RoundingMode HALF_DOWN: 1.25 → 1.2 (tie rounds down)', () => {
-    assert.equal(new SalesRoundingDecimal('1.25').withSalesScale(1, RoundingMode.HALF_DOWN).toString(), '1.2');
-});
-
-test('RoundingMode HALF_DOWN: 1.26 → 1.3', () => {
-    assert.equal(new SalesRoundingDecimal('1.26').withSalesScale(1, RoundingMode.HALF_DOWN).toString(), '1.3');
-});
-
-test('RoundingMode HALF_EVEN: 1.25 → 1.2 (tie to even)', () => {
-    assert.equal(new SalesRoundingDecimal('1.25').withSalesScale(1, RoundingMode.HALF_EVEN).toString(), '1.2');
-});
-
-test('RoundingMode HALF_EVEN: 1.35 → 1.4 (tie to even)', () => {
-    assert.equal(new SalesRoundingDecimal('1.35').withSalesScale(1, RoundingMode.HALF_EVEN).toString(), '1.4');
-});
-
-// ─── Static round factory ────────────────────────────────────────────────────
-
-test('round(String): uses default scale=2 and HALF_UP', () => {
-    assert.equal(SalesRoundingDecimal.round('19.995').toString(), '20.00');
-});
-
-test('round(number): rounds integer to 2 decimal places', () => {
-    assert.equal(SalesRoundingDecimal.round(5).toString(), '5.00');
-});
-
-test('round(val, scale, mode): custom scale 3 with HALF_UP', () => {
-    assert.equal(SalesRoundingDecimal.round('1.2345', 3, RoundingMode.HALF_UP).toString(), '1.235');
-});
-
-test('round(val, scale, mode): custom scale 1 with HALF_DOWN', () => {
-    assert.equal(SalesRoundingDecimal.round('1.25', 1, RoundingMode.HALF_DOWN).toString(), '1.2');
-});
-
-test('round returns a SalesRoundingDecimal instance', () => {
-    assert.ok(SalesRoundingDecimal.round('1.5') instanceof SalesRoundingDecimal);
-});
-
-// ─── Default constants ────────────────────────────────────────────────────────
-
-test('DEFAULT_SCALE is 2', () => {
-    assert.equal(SalesRoundingDecimal.DEFAULT_SCALE, 2);
-});
-
-test('DEFAULT_ROUNDING_MODE is HALF_UP', () => {
-    assert.equal(SalesRoundingDecimal.DEFAULT_ROUNDING_MODE, RoundingMode.HALF_UP);
-});
-
-// ─── toString / valueOf ───────────────────────────────────────────────────────
-
-test('toString returns the decimal string representation', () => {
-    assert.equal(new SalesRoundingDecimal('19.99').toString(), '19.99');
-});
-
-test('valueOf returns a Number', () => {
-    assert.equal(+new SalesRoundingDecimal('19.99'), 19.99);
-});
-
-// ─── Edge cases ───────────────────────────────────────────────────────────────
-
-test('Edge: zero scales to 0.00', () => {
-    assert.equal(new SalesRoundingDecimal('0').withSalesScale(2, RoundingMode.HALF_UP).toString(), '0.00');
-});
-
-test('Edge: large integer scales to two decimal places', () => {
-    assert.equal(new SalesRoundingDecimal('1000').withSalesScale(2, RoundingMode.HALF_UP).toString(), '1000.00');
-});
-
-test('Edge: 1.005 → 1.00 (HALF_DOWN avoids floating-point trap)', () => {
-    assert.equal(new SalesRoundingDecimal('1.005').withSalesScale(2, RoundingMode.HALF_DOWN).toString(), '1.00');
-});
-
-test('Edge: 1.005 → 1.01 (HALF_UP avoids floating-point trap)', () => {
-    assert.equal(new SalesRoundingDecimal('1.005').withSalesScale(2, RoundingMode.HALF_UP).toString(), '1.01');
-});
-
-test('Edge: scale 0 rounds to integer', () => {
-    assert.equal(new SalesRoundingDecimal('2.7').withSalesScale(0, RoundingMode.HALF_UP).toString(), '3');
-});
+console.log('\n── Results ──────────────────────────────────────────');
+console.log('  Passed: ' + passed);
+console.log('  Failed: ' + failed);
+if (failed > 0) {
+    process.exit(1);
+}
+console.log('  All tests passed ✔');
