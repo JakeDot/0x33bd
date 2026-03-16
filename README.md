@@ -104,8 +104,12 @@ try {
     console.error(e.message); // SalesRoundingDecimal: invalid numeric value: "not-a-number"
 }
 
-// null/undefined normalize to "0" by convention
-console.log(SalesRoundingDecimal.coerce(null)); // "0"
+// Fail-fast: null/undefined throw RangeError, never a silent 0
+try {
+    SalesRoundingDecimal.coerce(null);
+} catch (e) {
+    console.error(e.message); // SalesRoundingDecimal: null/undefined is not a valid numeric value
+}
 ```
 
 > **⚠ Precision note:** `SalesRoundingDecimal.js` uses `BigInt` arithmetic internally —
@@ -119,7 +123,7 @@ console.log(SalesRoundingDecimal.coerce(null)); // "0"
 
 - **Type Safety**: Java provides constructors for `String` and `Number` (covers `Integer`, `Long`, `Double`, `BigDecimal`, etc.). JavaScript accepts `string`, `number`, `null`, and `undefined`.
 - **Fluent API**: `withSalesScale` returns a `SalesRoundingDecimal`, keeping you in the Sales namespace.
-- **Fail-Fast**: invalid string inputs throw `TypeError` (JS) / `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` normalize to `0` by convention.
+- **Fail-Fast**: invalid string inputs throw `RangeError` (JS) / `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` throw rather than defaulting.
 - **Immutable**: instances are frozen (`Object.freeze` in JS, `BigDecimal` semantics in Java).
 - **KISS**: two constructors (`String` and `Number`), one fluent chain method, and static `round()` convenience factories.
 - **Full Precision (JS)**: uses `BigInt` string arithmetic — zero floating-point rounding errors, all seven `RoundingMode` values supported, results identical to Java's `BigDecimal.setScale()`.
