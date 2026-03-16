@@ -105,7 +105,7 @@ public class SalesRoundingDecimal extends BigDecimal {
     }
 
     /**
-     * Normalises a {@link String} input to a canonical decimal string.
+     * Normalizes a {@link String} input to a canonical decimal string.
      * Throws {@link NumberFormatException} for {@code null} — matching
      * JavaScript's {@code coerce()} fail-fast contract.
      *
@@ -119,7 +119,7 @@ public class SalesRoundingDecimal extends BigDecimal {
     }
 
     /**
-     * Normalises a {@link Number} input to a canonical decimal string suitable
+     * Normalizes a {@link Number} input to a canonical decimal string suitable
      * for passing to the {@link BigDecimal} constructor.
      * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
      * scientific-notation representation; all other {@link Number} subtypes use

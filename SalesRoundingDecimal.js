@@ -1,7 +1,7 @@
 import { RoundingMode } from './RoundingMode.js';
 
 /**
- * SalesRoundingDecimal — a "KISS" decorator for decimal values normalised for
+ * SalesRoundingDecimal — a "KISS" decorator for decimal values normalized for
  * sales logic. Mirrors the contract of the Java {@code SalesRoundingDecimal
  * extends BigDecimal} companion class.
  *
@@ -24,7 +24,7 @@ class SalesRoundingDecimal {
     }
 
     /**
-     * Normalises any input to a canonical decimal string.
+     * Normalizes any input to a canonical decimal string.
      * Throws {@link RangeError} for {@code null}, {@code undefined}, NaN,
      * non-finite numbers, and any non-numeric string — matching Java's
      * {@link NumberFormatException} fail-fast contract.

@@ -104,7 +104,7 @@ try {
     console.error(e.message); // SalesRoundingDecimal: invalid numeric value: "not-a-number"
 }
 
-// null/undefined normalise to "0" by convention
+// null/undefined normalize to "0" by convention
 console.log(SalesRoundingDecimal.coerce(null)); // "0"
 ```
 
