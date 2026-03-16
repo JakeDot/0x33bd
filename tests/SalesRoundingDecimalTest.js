@@ -47,16 +47,16 @@ test('Constructor: throws RangeError for undefined', () => {
     assert.throws(() => new SalesRoundingDecimal(undefined), RangeError);
 });
 
-test('Constructor: throws TypeError for non-numeric string', () => {
-    assert.throws(() => new SalesRoundingDecimal('not-a-number'), TypeError);
+test('Constructor: throws RangeError for non-numeric string', () => {
+    assert.throws(() => new SalesRoundingDecimal('not-a-number'), RangeError);
 });
 
-test('Constructor: throws TypeError for NaN', () => {
-    assert.throws(() => new SalesRoundingDecimal(NaN), TypeError);
+test('Constructor: throws RangeError for NaN', () => {
+    assert.throws(() => new SalesRoundingDecimal(NaN), RangeError);
 });
 
-test('Constructor: throws TypeError for Infinity', () => {
-    assert.throws(() => new SalesRoundingDecimal(Infinity), TypeError);
+test('Constructor: throws RangeError for Infinity', () => {
+    assert.throws(() => new SalesRoundingDecimal(Infinity), RangeError);
 });
 
 test('Constructor: instance is frozen (immutable)', () => {
