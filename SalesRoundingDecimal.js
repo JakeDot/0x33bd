@@ -1,4 +1,4 @@
-const { RoundingMode } = require('./RoundingMode');
+import { RoundingMode } from './RoundingMode.js';
 
 /**
  * SalesRoundingDecimal — a "KISS" decorator for decimal values normalised for
@@ -161,4 +161,4 @@ class SalesRoundingDecimal {
     }
 }
 
-module.exports = { SalesRoundingDecimal, RoundingMode };
+export { SalesRoundingDecimal, RoundingMode };
