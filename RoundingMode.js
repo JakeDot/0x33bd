@@ -11,4 +11,4 @@ const RoundingMode = Object.freeze({
     HALF_EVEN: 'HALF_EVEN',
 });
 
-module.exports = { RoundingMode };
+export { RoundingMode };
