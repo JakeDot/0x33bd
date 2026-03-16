@@ -5,7 +5,7 @@ A lightweight, "KISS" utility for consistent decimal handling across Java and Ja
 Entirely vibe coded using Gemini Flash 3, Claude Sonnet 4.6; Haiku 4.5. Based on in-memory 🧠 representation of decimals sample project of pi day at Frank's.
 
 ## Core Principles
-- **Universal Normalization**: Both implementations handle Strings, Numbers, and Decimals identically.
+- **Type Safety**: Java provides dedicated constructors for every accepted type (`String`, `int`, `long`, `double`, `BigDecimal`). JavaScript accepts `string`, `number`, `null`, and `undefined`.
 - **Fail-Fast**: Invalid inputs result in errors — non-numeric strings throw on both sides.
 - **Fluent API**: Intent-signaling chaining for scaling and rounding.
 - **Immutability**: Everything is "frozen" or immutable by design.
@@ -66,8 +66,12 @@ This library was written to commemorate the occasion. GitHub Copilot + Claude So
 ## Java
 
 ```java
-// Universal construction — accepts Number, String, or BigDecimal
-SalesRoundingDecimal price = new SalesRoundingDecimal("19.995");
+// Typed construction — dedicated constructor for each accepted type
+SalesRoundingDecimal fromString  = new SalesRoundingDecimal("19.995");
+SalesRoundingDecimal fromInt     = new SalesRoundingDecimal(19);
+SalesRoundingDecimal fromLong    = new SalesRoundingDecimal(19L);
+SalesRoundingDecimal fromDouble  = new SalesRoundingDecimal(19.995);
+SalesRoundingDecimal fromDecimal = new SalesRoundingDecimal(price.add(tax));
 
 // Fluent chain method — stays in the Sales namespace
 SalesRoundingDecimal total = price.withSalesScale(2, RoundingMode.HALF_UP);
@@ -117,11 +121,11 @@ console.log(SalesRoundingDecimal.coerce(null)); // "0"
 
 ## Design Principles
 
-- **Universal Wrapper**: handles `String`, `Number`, and (Java) `BigDecimal` identically during construction.
+- **Type Safety**: Java provides dedicated constructors for `String`, `int`, `long`, `double`, and `BigDecimal`. JavaScript accepts `string`, `number`, `null`, and `undefined`.
 - **Fluent API**: `withSalesScale` returns a `SalesRoundingDecimal`, keeping you in the Sales namespace.
 - **Fail-Fast**: invalid string inputs throw `TypeError` (JS) / `NumberFormatException` (Java) — no silent `0` masking of bad data. `null`/`undefined` normalize to `0` by convention.
 - **Immutable**: instances are frozen (`Object.freeze` in JS, `BigDecimal` semantics in Java).
-- **KISS**: one constructor, one fluent chain method, one static coerce helper, and static `round()` convenience factories.
+- **KISS**: typed constructors, one fluent chain method, and static `round()` convenience factories.
 - **Full Precision (JS)**: uses `BigInt` string arithmetic — zero floating-point rounding errors, all seven `RoundingMode` values supported, results identical to Java's `BigDecimal.setScale()`.
 
 ---
