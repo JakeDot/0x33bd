@@ -1,5 +1,7 @@
 # 0x33bd - Sales Rounding Decimal
 
+Sales Rounding BigDecimal for Java and JS
+
 A lightweight, "KISS" utility for consistent decimal handling across Java and JavaScript, specifically tailored for sales projects.
 
 Entirely vibe coded using Gemini Flash 3, Claude Sonnet 4.6; Haiku 4.5. Based on in-memory 🧠 representation of decimals sample project of pi day at Frank's.
@@ -23,8 +25,6 @@ SalesRoundingDecimal total = price.withSalesScale(2, RoundingMode.HALF_UP);
 const price = new SalesRoundingDecimal("19.995");
 const total = price.withSalesScale(2, RoundingMode.HALF_UP);
 ```
-# 0x33bd
-0x33bd - Sales Rounding BigDecimal for Java and JS
 
 ## The Mystery of 0x33bd: Gemini's Guesses
 As part of the "vibe coding" session, Gemini attempted to decode the meaning of `0x33bd`. While all were confirmed as "colder" or "wrong," they remain part of the project's lore:
@@ -146,7 +146,7 @@ javac SalesRoundingDecimal.java
 ## JavaScript
 
 ### Requirements
-- Node.js 14+
+- None
 
 ### Usage
 
