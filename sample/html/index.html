@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SalesRoundingDecimal — HTML Sample</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 640px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background: #f5f5f5;
+            color: #222;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+        p.subtitle { color: #555; margin-top: 0; font-size: 0.9rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+        th {
+            background: #1a1a2e;
+            color: #fff;
+            text-align: left;
+            padding: 0.55rem 0.75rem;
+            font-size: 0.85rem;
+        }
+        td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        code { background: #eee; border-radius: 3px; padding: 1px 4px; font-size: 0.85rem; }
+        .result { font-weight: 600; color: #0a6; }
+        .error  { font-weight: 600; color: #c33; }
+        section.demo {
+            margin-top: 2rem;
+            background: #fff;
+            border-radius: 6px;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+        section.demo h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+        label { font-size: 0.9rem; display: block; margin-bottom: 0.3rem; }
+        input, select {
+            padding: 0.35rem 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            width: 7rem;
+        }
+        button {
+            padding: 0.38rem 0.9rem;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        button:hover { background: #2d2d5e; }
+        #liveResult { margin-top: 0.75rem; font-size: 0.95rem; min-height: 1.4rem; }
+    </style>
+</head>
+<body>
+
+<h1>SalesRoundingDecimal <small style="font-weight:normal;color:#555">JS</small></h1>
+<p class="subtitle">Live sample — powered by <code>SalesRoundingDecimal.js</code> &amp; <code>RoundingMode.js</code></p>
+
+<!-- Static examples table -->
+<table>
+    <thead>
+        <tr>
+            <th>Expression</th>
+            <th>Result</th>
+        </tr>
+    </thead>
+    <tbody id="examples"></tbody>
+</table>
+
+<!-- Interactive demo -->
+<section class="demo">
+    <h2>Try it yourself</h2>
+    <label>
+        Value
+        <input type="text" id="inputVal" value="19.995" />
+        Scale
+        <input type="number" id="inputScale" value="2" min="0" max="10" style="width:4rem" />
+        Mode
+        <select id="inputMode"></select>
+        <button onclick="runLive()">Round</button>
+    </label>
+    <div id="liveResult"></div>
+</section>
+
+<script type="module">
+    import { RoundingMode }        from '../../RoundingMode.js';
+    import { SalesRoundingDecimal } from '../../SalesRoundingDecimal.js';
+
+    /* ── populate rounding-mode dropdown ── */
+    const modeSelect = document.getElementById('inputMode');
+    for (const mode of Object.keys(RoundingMode)) {
+        const opt = document.createElement('option');
+        opt.value = mode;
+        opt.textContent = mode;
+        if (mode === 'HALF_UP') opt.selected = true;
+        modeSelect.appendChild(opt);
+    }
+
+    /* ── static examples ── */
+    const examples = [
+        {
+            expr: `new SalesRoundingDecimal("19.995").withSalesScale(2, HALF_UP)`,
+            fn:   () => new SalesRoundingDecimal("19.995").withSalesScale(2, RoundingMode.HALF_UP).toString(),
+        },
+        {
+            expr: `SalesRoundingDecimal.round("19.994")`,
+            fn:   () => SalesRoundingDecimal.round("19.994").toString(),
+        },
+        {
+            expr: `SalesRoundingDecimal.round("1.005")   // BigInt precision`,
+            fn:   () => SalesRoundingDecimal.round("1.005").toString(),
+        },
+        {
+            expr: `new SalesRoundingDecimal("-19.995").withSalesScale(2, CEILING)`,
+            fn:   () => new SalesRoundingDecimal("-19.995").withSalesScale(2, RoundingMode.CEILING).toString(),
+        },
+        {
+            expr: `new SalesRoundingDecimal("2.5").withSalesScale(0, HALF_EVEN)`,
+            fn:   () => new SalesRoundingDecimal("2.5").withSalesScale(0, RoundingMode.HALF_EVEN).toString(),
+        },
+        {
+            expr: `new SalesRoundingDecimal(null) → throws RangeError`,
+            fn:   () => { new SalesRoundingDecimal(null); },
+            expectError: true,
+        },
+    ];
+
+    const tbody = document.getElementById('examples');
+    for (const ex of examples) {
+        const tr = document.createElement('tr');
+        let resultHtml;
+        try {
+            const val = ex.fn();
+            resultHtml = `<span class="result">${val}</span>`;
+        } catch (e) {
+            resultHtml = `<span class="error">${e.constructor.name}: ${e.message}</span>`;
+        }
+        tr.innerHTML = `<td><code>${ex.expr}</code></td><td>${resultHtml}</td>`;
+        tbody.appendChild(tr);
+    }
+
+    /* ── interactive demo ── */
+    window.runLive = function () {
+        const val   = document.getElementById('inputVal').value;
+        const scale = parseInt(document.getElementById('inputScale').value, 10);
+        const mode  = document.getElementById('inputMode').value;
+        const out   = document.getElementById('liveResult');
+        try {
+            const result = new SalesRoundingDecimal(val)
+                .withSalesScale(scale, RoundingMode[mode]);
+            out.innerHTML = `<span class="result">→ ${result}</span>`;
+        } catch (e) {
+            out.innerHTML = `<span class="error">${e.constructor.name}: ${e.message}</span>`;
+        }
+    };
+</script>
+
+</body>
+</html>
