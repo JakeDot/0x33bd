@@ -21,22 +21,24 @@ public class SalesRoundingDecimal extends BigDecimal {
 
     /**
      * Constructs a {@code SalesRoundingDecimal} from a {@link String}.
-     * A {@code null} value is treated as {@code "0"}.
      *
      * @param val the string representation of the decimal value
+     * @throws NumberFormatException if {@code val} is {@code null} or not a valid decimal
      */
     public SalesRoundingDecimal(String val) {
-        super(val != null ? val : "0");
+        super(requireValidDecimalString(val));
     }
 
     /**
      * Constructs a {@code SalesRoundingDecimal} from a {@link Number}
      * (e.g. {@link Integer}, {@link Long}, {@link Double}, {@link BigDecimal}).
-     * A {@code null} value is treated as {@code "0"}.
      * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
      * scientific-notation representation.
      *
      * @param val the numeric value
+     * @throws NumberFormatException if {@code val} is {@code null}, {@link Double#NaN},
+     *                               or non-finite (the latter two are detected by the
+     *                               {@link BigDecimal} constructor)
      */
     public SalesRoundingDecimal(Number val) {
         super(toDecimalString(val));
@@ -108,11 +110,22 @@ public class SalesRoundingDecimal extends BigDecimal {
      * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
      * scientific-notation representation; all other {@link Number} subtypes use
      * {@link Object#toString()}.
-     * A {@code null} value returns {@code "0"}.
+     *
+     * @throws NumberFormatException if {@code val} is {@code null}
      */
     private static String toDecimalString(Number val) {
-        if (val == null) return "0";
+        if (val == null) throw new NumberFormatException("null is not a valid numeric value");
         if (val instanceof BigDecimal bd) return bd.toPlainString();
         return val.toString();
+    }
+
+    /**
+     * Validates that {@code val} is a non-{@code null} string and returns it.
+     *
+     * @throws NumberFormatException if {@code val} is {@code null}
+     */
+    private static String requireValidDecimalString(String val) {
+        if (val == null) throw new NumberFormatException("null is not a valid numeric value");
+        return val;
     }
 }
