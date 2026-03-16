@@ -16,7 +16,7 @@ class SalesRoundingDecimal {
 
     /**
      * @param {string|number} val
-     * @throws {TypeError} if val is not a valid finite decimal
+     * @throws {RangeError} if val is not a valid finite decimal
      */
     constructor(val) {
         this.value = SalesRoundingDecimal.coerce(val);
@@ -25,14 +25,13 @@ class SalesRoundingDecimal {
 
     /**
      * Normalises any input to a canonical decimal string.
-     * Throws {@link RangeError} for {@code null} or {@code undefined}, and
-     * {@link TypeError} for NaN, non-finite numbers, and any non-numeric string
-     * — matching Java's {@link NumberFormatException} fail-fast contract.
+     * Throws {@link RangeError} for {@code null}, {@code undefined}, NaN,
+     * non-finite numbers, and any non-numeric string — matching Java's
+     * {@link NumberFormatException} fail-fast contract.
      *
      * @param {*} val
      * @returns {string}
-     * @throws {RangeError}  if val is null or undefined
-     * @throws {TypeError}   if val cannot be interpreted as a finite decimal (including NaN and Infinity)
+     * @throws {RangeError}  if val is null, undefined, or cannot be interpreted as a finite decimal
      */
     static coerce(val) {
         if (val === null || val === undefined) {
@@ -40,7 +39,7 @@ class SalesRoundingDecimal {
         }
         const str = typeof val === 'number' ? val.toString() : String(val);
         if (!/^-?\d+(\.\d+)?$/.test(str)) {
-            throw new TypeError(`SalesRoundingDecimal: invalid numeric value: "${str}"`);
+            throw new RangeError(`SalesRoundingDecimal: invalid numeric value: "${str}"`);
         }
         return str;
     }
