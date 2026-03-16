@@ -80,6 +80,21 @@ public class SalesRoundingDecimalTest {
                 () -> new SalesRoundingDecimal((Number) null), "null Number throws");
     }
 
+    static void testCoerce() {
+        System.out.println("coerce (static):");
+        assertEquals("19.995", SalesRoundingDecimal.coerce("19.995"),
+                "coerce(String): returns canonical string for a valid decimal string");
+        assertEquals("7", SalesRoundingDecimal.coerce((Number) 7),
+                "coerce(Number): returns string for a number");
+        assertEquals("19.995", SalesRoundingDecimal.coerce((Number) new BigDecimal("19.995")),
+                "coerce(Number): returns plain string for BigDecimal");
+
+        assertThrows(NumberFormatException.class,
+                () -> SalesRoundingDecimal.coerce((String) null), "coerce(String): null throws");
+        assertThrows(NumberFormatException.class,
+                () -> SalesRoundingDecimal.coerce((Number) null), "coerce(Number): null throws");
+    }
+
     static void testWithSalesScaleDefaultMode() {
         System.out.println("withSalesScale (HALF_UP):");
         assertEquals("20.00",
@@ -196,6 +211,7 @@ public class SalesRoundingDecimalTest {
 
         testConstructorFromString();
         testConstructorFromNumber();
+        testCoerce();
         testWithSalesScaleDefaultMode();
         testRoundingModes();
         testStaticRoundWithDefaults();
