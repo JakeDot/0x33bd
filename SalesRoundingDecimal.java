@@ -4,8 +4,7 @@ import java.math.RoundingMode;
 /**
  * <p><b>SalesRoundingDecimal</b> is a "KISS" decorator for {@link BigDecimal}.</p>
  *
- * <p>It provides typed constructors for {@link String}, {@code int}, {@code long},
- * {@code double}, and {@link BigDecimal}, a fluent
+ * <p>It provides typed constructors for {@link String} and {@link Number}, a fluent
  * {@link #withSalesScale(int, RoundingMode)} instance method, and static
  * {@link #round} convenience factory methods so callers can round in a single
  * expression.</p>
@@ -31,41 +30,16 @@ public class SalesRoundingDecimal extends BigDecimal {
     }
 
     /**
-     * Constructs a {@code SalesRoundingDecimal} from an {@code int}.
-     *
-     * @param val the integer value
-     */
-    public SalesRoundingDecimal(int val) {
-        super(val);
-    }
-
-    /**
-     * Constructs a {@code SalesRoundingDecimal} from a {@code long}.
-     *
-     * @param val the long value
-     */
-    public SalesRoundingDecimal(long val) {
-        super(val);
-    }
-
-    /**
-     * Constructs a {@code SalesRoundingDecimal} from a {@code double}.
-     * Uses {@link Double#toString(double)} to avoid floating-point imprecision.
-     *
-     * @param val the double value
-     */
-    public SalesRoundingDecimal(double val) {
-        super(Double.toString(val));
-    }
-
-    /**
-     * Constructs a {@code SalesRoundingDecimal} from a {@link BigDecimal}.
+     * Constructs a {@code SalesRoundingDecimal} from a {@link Number}
+     * (e.g. {@link Integer}, {@link Long}, {@link Double}, {@link BigDecimal}).
      * A {@code null} value is treated as {@code "0"}.
+     * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
+     * scientific-notation representation.
      *
-     * @param val the {@link BigDecimal} value
+     * @param val the numeric value
      */
-    public SalesRoundingDecimal(BigDecimal val) {
-        super(val != null ? val.toPlainString() : "0");
+    public SalesRoundingDecimal(Number val) {
+        super(toDecimalString(val));
     }
 
     /**
@@ -95,43 +69,10 @@ public class SalesRoundingDecimal extends BigDecimal {
      * <p>Static convenience factory: construct and round in a single call using the
      * default scale ({@value #DEFAULT_SCALE}) and rounding mode ({@link RoundingMode#HALF_UP}).</p>
      *
-     * @param val the {@code int} value to round
+     * @param val the {@link Number} value to round
      * @return a rounded {@link SalesRoundingDecimal}
      */
-    public static SalesRoundingDecimal round(int val) {
-        return round(val, DEFAULT_SCALE, DEFAULT_ROUNDING_MODE);
-    }
-
-    /**
-     * <p>Static convenience factory: construct and round in a single call using the
-     * default scale ({@value #DEFAULT_SCALE}) and rounding mode ({@link RoundingMode#HALF_UP}).</p>
-     *
-     * @param val the {@code long} value to round
-     * @return a rounded {@link SalesRoundingDecimal}
-     */
-    public static SalesRoundingDecimal round(long val) {
-        return round(val, DEFAULT_SCALE, DEFAULT_ROUNDING_MODE);
-    }
-
-    /**
-     * <p>Static convenience factory: construct and round in a single call using the
-     * default scale ({@value #DEFAULT_SCALE}) and rounding mode ({@link RoundingMode#HALF_UP}).</p>
-     *
-     * @param val the {@code double} value to round
-     * @return a rounded {@link SalesRoundingDecimal}
-     */
-    public static SalesRoundingDecimal round(double val) {
-        return round(val, DEFAULT_SCALE, DEFAULT_ROUNDING_MODE);
-    }
-
-    /**
-     * <p>Static convenience factory: construct and round in a single call using the
-     * default scale ({@value #DEFAULT_SCALE}) and rounding mode ({@link RoundingMode#HALF_UP}).</p>
-     *
-     * @param val the {@link BigDecimal} value to round
-     * @return a rounded {@link SalesRoundingDecimal}
-     */
-    public static SalesRoundingDecimal round(BigDecimal val) {
+    public static SalesRoundingDecimal round(Number val) {
         return round(val, DEFAULT_SCALE, DEFAULT_ROUNDING_MODE);
     }
 
@@ -152,51 +93,26 @@ public class SalesRoundingDecimal extends BigDecimal {
      * <p>Static convenience factory: construct and round in a single call using the
      * specified scale and rounding mode.</p>
      *
-     * @param val   the {@code int} value to round
+     * @param val   the {@link Number} value to round
      * @param scale the number of decimal places; must be &ge; 0
      * @param mode  the rounding strategy; must not be {@code null}
      * @return a rounded {@link SalesRoundingDecimal}
      */
-    public static SalesRoundingDecimal round(int val, int scale, RoundingMode mode) {
+    public static SalesRoundingDecimal round(Number val, int scale, RoundingMode mode) {
         return new SalesRoundingDecimal(val).withSalesScale(scale, mode);
     }
 
     /**
-     * <p>Static convenience factory: construct and round in a single call using the
-     * specified scale and rounding mode.</p>
-     *
-     * @param val   the {@code long} value to round
-     * @param scale the number of decimal places; must be &ge; 0
-     * @param mode  the rounding strategy; must not be {@code null}
-     * @return a rounded {@link SalesRoundingDecimal}
+     * Converts a {@link Number} to a plain decimal string suitable for
+     * passing to the {@link BigDecimal} constructor.
+     * {@link BigDecimal} values use {@link BigDecimal#toPlainString()} to avoid
+     * scientific-notation representation; all other {@link Number} subtypes use
+     * {@link Object#toString()}.
+     * A {@code null} value returns {@code "0"}.
      */
-    public static SalesRoundingDecimal round(long val, int scale, RoundingMode mode) {
-        return new SalesRoundingDecimal(val).withSalesScale(scale, mode);
-    }
-
-    /**
-     * <p>Static convenience factory: construct and round in a single call using the
-     * specified scale and rounding mode.</p>
-     *
-     * @param val   the {@code double} value to round
-     * @param scale the number of decimal places; must be &ge; 0
-     * @param mode  the rounding strategy; must not be {@code null}
-     * @return a rounded {@link SalesRoundingDecimal}
-     */
-    public static SalesRoundingDecimal round(double val, int scale, RoundingMode mode) {
-        return new SalesRoundingDecimal(val).withSalesScale(scale, mode);
-    }
-
-    /**
-     * <p>Static convenience factory: construct and round in a single call using the
-     * specified scale and rounding mode.</p>
-     *
-     * @param val   the {@link BigDecimal} value to round
-     * @param scale the number of decimal places; must be &ge; 0
-     * @param mode  the rounding strategy; must not be {@code null}
-     * @return a rounded {@link SalesRoundingDecimal}
-     */
-    public static SalesRoundingDecimal round(BigDecimal val, int scale, RoundingMode mode) {
-        return new SalesRoundingDecimal(val).withSalesScale(scale, mode);
+    private static String toDecimalString(Number val) {
+        if (val == null) return "0";
+        if (val instanceof BigDecimal) return ((BigDecimal) val).toPlainString();
+        return val.toString();
     }
 }
