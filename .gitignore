@@ -1,6 +1,7 @@
 *.class
 # Java build artifacts
 java/target/
+sample/java/out/
 
 # JavaScript dependencies and coverage
 js/node_modules/
