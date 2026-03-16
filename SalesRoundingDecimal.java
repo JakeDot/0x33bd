@@ -112,7 +112,7 @@ public class SalesRoundingDecimal extends BigDecimal {
      */
     private static String toDecimalString(Number val) {
         if (val == null) return "0";
-        if (val instanceof BigDecimal) return ((BigDecimal) val).toPlainString();
+        if (val instanceof BigDecimal bd) return bd.toPlainString();
         return val.toString();
     }
 }
