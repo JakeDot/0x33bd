@@ -60,6 +60,11 @@ function testConstructor() {
     assertEquals('0', new SalesRoundingDecimal('0').toString(), 'parses zero');
     assertEquals('-5.5', new SalesRoundingDecimal('-5.5').toString(), 'parses negative decimal string');
     assertEquals('19', new SalesRoundingDecimal(19).toString(), 'parses number primitive');
+    assertEquals('1.5', new SalesRoundingDecimal('+1.5').toString(), 'parses explicit positive sign');
+    assertEquals('0.5', new SalesRoundingDecimal('.5').toString(), 'parses leading dot');
+    assertEquals('-0.5', new SalesRoundingDecimal('-.5').toString(), 'parses negative leading dot');
+    assertEquals('0.00001', new SalesRoundingDecimal('1e-5').toString(), 'parses scientific notation negative exp');
+    assertEquals('150', new SalesRoundingDecimal('1.5e2').toString(), 'parses scientific notation positive exp');
 
     assertThrows(RangeError, () => new SalesRoundingDecimal(null), 'null throws');
     assertThrows(RangeError, () => new SalesRoundingDecimal(undefined), 'undefined throws');
@@ -74,6 +79,8 @@ function testCoerce() {
     assertEquals('19.995', SalesRoundingDecimal.coerce('19.995'),
         'returns canonical string for a valid decimal string');
     assertEquals('7', SalesRoundingDecimal.coerce(7), 'returns string for a number');
+    assertEquals('1.5', SalesRoundingDecimal.coerce('+1.5'), 'coerce explicit positive sign');
+    assertEquals('0.00001', SalesRoundingDecimal.coerce('1e-5'), 'coerce scientific notation');
 
     assertThrows(RangeError, () => SalesRoundingDecimal.coerce(null), 'null throws');
     assertThrows(RangeError, () => SalesRoundingDecimal.coerce(undefined), 'undefined throws');
@@ -153,6 +160,29 @@ function testRoundingModes() {
     assertEquals('1.4',
         new SalesRoundingDecimal('1.35').withSalesScale(1, RoundingMode.HALF_EVEN).toString(),
         'HALF_EVEN: 1.35 → 1.4 (even)');
+
+    // Extended precision remainder cases (digits beyond scale + 1)
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.200000000001').withSalesScale(1, RoundingMode.UP).toString(),
+        'UP: 1.200000000001 → 1.3');
+    assertEquals('-1.3',
+        new SalesRoundingDecimal('-1.200000000001').withSalesScale(1, RoundingMode.UP).toString(),
+        'UP: -1.200000000001 → -1.3');
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.200000000001').withSalesScale(1, RoundingMode.CEILING).toString(),
+        'CEILING: 1.200000000001 → 1.3');
+    assertEquals('-1.3',
+        new SalesRoundingDecimal('-1.200000000001').withSalesScale(1, RoundingMode.FLOOR).toString(),
+        'FLOOR: -1.200000000001 → -1.3');
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.250000000001').withSalesScale(1, RoundingMode.HALF_DOWN).toString(),
+        'HALF_DOWN: 1.250000000001 → 1.3');
+    assertEquals('1.3',
+        new SalesRoundingDecimal('1.250000000001').withSalesScale(1, RoundingMode.HALF_EVEN).toString(),
+        'HALF_EVEN: 1.250000000001 → 1.3');
+    assertEquals('-1.3',
+        new SalesRoundingDecimal('-1.250000000001').withSalesScale(1, RoundingMode.HALF_EVEN).toString(),
+        'HALF_EVEN: -1.250000000001 → -1.3');
 }
 
 function testStaticRoundWithDefaults() {
