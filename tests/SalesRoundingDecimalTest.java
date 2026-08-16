@@ -155,6 +155,29 @@ public class SalesRoundingDecimalTest {
         assertEquals("1.4",
                 new SalesRoundingDecimal("1.35").withSalesScale(1, RoundingMode.HALF_EVEN).toPlainString(),
                 "HALF_EVEN: 1.35 → 1.4 (even)");
+
+        // Extended precision remainder cases (digits beyond scale + 1)
+        assertEquals("1.3",
+                new SalesRoundingDecimal("1.200000000001").withSalesScale(1, RoundingMode.UP).toPlainString(),
+                "UP: 1.200000000001 → 1.3");
+        assertEquals("-1.3",
+                new SalesRoundingDecimal("-1.200000000001").withSalesScale(1, RoundingMode.UP).toPlainString(),
+                "UP: -1.200000000001 → -1.3");
+        assertEquals("1.3",
+                new SalesRoundingDecimal("1.200000000001").withSalesScale(1, RoundingMode.CEILING).toPlainString(),
+                "CEILING: 1.200000000001 → 1.3");
+        assertEquals("-1.3",
+                new SalesRoundingDecimal("-1.200000000001").withSalesScale(1, RoundingMode.FLOOR).toPlainString(),
+                "FLOOR: -1.200000000001 → -1.3");
+        assertEquals("1.3",
+                new SalesRoundingDecimal("1.250000000001").withSalesScale(1, RoundingMode.HALF_DOWN).toPlainString(),
+                "HALF_DOWN: 1.250000000001 → 1.3");
+        assertEquals("1.3",
+                new SalesRoundingDecimal("1.250000000001").withSalesScale(1, RoundingMode.HALF_EVEN).toPlainString(),
+                "HALF_EVEN: 1.250000000001 → 1.3");
+        assertEquals("-1.3",
+                new SalesRoundingDecimal("-1.250000000001").withSalesScale(1, RoundingMode.HALF_EVEN).toPlainString(),
+                "HALF_EVEN: -1.250000000001 → -1.3");
     }
 
     static void testStaticRoundWithDefaults() {

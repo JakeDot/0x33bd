@@ -37,11 +37,42 @@ class SalesRoundingDecimal {
         if (val === null || val === undefined) {
             throw new RangeError('SalesRoundingDecimal: null/undefined is not a valid numeric value');
         }
-        const str = typeof val === 'number' ? val.toString() : String(val);
-        if (!/^-?\d+(\.\d+)?$/.test(str)) {
+        if (typeof val === 'number') {
+            if (!Number.isFinite(val)) {
+                throw new RangeError(`SalesRoundingDecimal: invalid numeric value: "${val}"`);
+            }
+        }
+        const str = String(val).trim();
+        const match = str.match(/^([+-])?(?:(\d+)\.?(\d*)|(\.\d+))(?:[eE]([+-]?\d+))?$/);
+        if (!match) {
             throw new RangeError(`SalesRoundingDecimal: invalid numeric value: "${str}"`);
         }
-        return str;
+
+        const sign = match[1] === '-' ? '-' : '';
+        let intDigits = match[2] !== undefined ? match[2] : '0';
+        let fracDigits = match[2] !== undefined ? (match[3] || '') : match[4].slice(1);
+        const exp = match[5] ? parseInt(match[5], 10) : 0;
+
+        if (exp !== 0) {
+            const allDigits = intDigits + fracDigits;
+            const newDot = intDigits.length + exp;
+            if (newDot <= 0) {
+                intDigits = '0';
+                fracDigits = '0'.repeat(-newDot) + allDigits;
+            } else if (newDot >= allDigits.length) {
+                intDigits = allDigits + '0'.repeat(newDot - allDigits.length);
+                fracDigits = '';
+            } else {
+                intDigits = allDigits.slice(0, newDot);
+                fracDigits = allDigits.slice(newDot);
+            }
+        }
+
+        intDigits = intDigits.replace(/^0+/, '') || '0';
+        const hasNonZeroFrac = /[1-9]/.test(fracDigits);
+        const canonicalSign = (sign === '-' && (intDigits !== '0' || hasNonZeroFrac)) ? '-' : '';
+
+        return canonicalSign + intDigits + (fracDigits ? '.' + fracDigits : '');
     }
 
     /**
@@ -53,10 +84,12 @@ class SalesRoundingDecimal {
      * @returns {SalesRoundingDecimal}
      */
     withSalesScale(newScale, roundingMode = RoundingMode.HALF_UP) {
-        const { scaledIntPart, roundDigit, isNegative } =
+        const { scaledIntPart, roundDigit, hasRemainder, hasMoreDigitsAfterRoundDigit, isNegative } =
             SalesRoundingDecimal.#parseForRounding(this.value, newScale);
         const rounded =
-            SalesRoundingDecimal.#applyRounding(scaledIntPart, roundDigit, isNegative, roundingMode);
+            SalesRoundingDecimal.#applyRounding(
+                scaledIntPart, roundDigit, hasRemainder, hasMoreDigitsAfterRoundDigit, isNegative, roundingMode
+            );
         return new SalesRoundingDecimal(
             SalesRoundingDecimal.#formatResult(rounded, isNegative, newScale)
         );
@@ -93,7 +126,7 @@ class SalesRoundingDecimal {
      *
      * @param {string} valueStr
      * @param {number} scale
-     * @returns {{ scaledIntPart: bigint, roundDigit: number, isNegative: boolean }}
+     * @returns {{ scaledIntPart: bigint, roundDigit: number, hasRemainder: boolean, hasMoreDigitsAfterRoundDigit: boolean, isNegative: boolean }}
      */
     static #parseForRounding(valueStr, scale) {
         const isNegative = valueStr.startsWith('-');
@@ -103,14 +136,15 @@ class SalesRoundingDecimal {
         const intDigits  = dotIndex === -1 ? absStr : absStr.slice(0, dotIndex);
         const fracDigits = dotIndex === -1 ? '' : absStr.slice(dotIndex + 1);
 
-        const needed     = scale + 1;
-        const paddedFrac = fracDigits.padEnd(needed, '0').slice(0, needed);
+        const keepFrac   = fracDigits.slice(0, scale).padEnd(scale, '0');
+        const remainderDigits = fracDigits.slice(scale);
 
-        const keepFrac   = paddedFrac.slice(0, scale);
-        const roundDigit = paddedFrac[scale] ? parseInt(paddedFrac[scale], 10) : 0;
+        const roundDigit = remainderDigits.length > 0 ? parseInt(remainderDigits[0], 10) : 0;
+        const hasRemainder = /[1-9]/.test(remainderDigits);
+        const hasMoreDigitsAfterRoundDigit = /[1-9]/.test(remainderDigits.slice(1));
 
         const scaledIntPart = BigInt(intDigits + keepFrac);
-        return { scaledIntPart, roundDigit, isNegative };
+        return { scaledIntPart, roundDigit, hasRemainder, hasMoreDigitsAfterRoundDigit, isNegative };
     }
 
     /**
@@ -118,23 +152,31 @@ class SalesRoundingDecimal {
      *
      * @param {bigint}  scaledIntPart
      * @param {number}  roundDigit
+     * @param {boolean} hasRemainder
+     * @param {boolean} hasMoreDigitsAfterRoundDigit
      * @param {boolean} isNegative
      * @param {string}  roundingMode
      * @returns {bigint}
      */
-    static #applyRounding(scaledIntPart, roundDigit, isNegative, roundingMode) {
+    static #applyRounding(scaledIntPart, roundDigit, hasRemainder, hasMoreDigitsAfterRoundDigit, isNegative, roundingMode) {
         const roundUp = () => scaledIntPart + 1n;
         const keep    = () => scaledIntPart;
 
         switch (roundingMode) {
-            case RoundingMode.DOWN:      return keep();
-            case RoundingMode.UP:        return roundDigit !== 0 ? roundUp() : keep();
-            case RoundingMode.CEILING:   return (!isNegative && roundDigit !== 0) ? roundUp() : keep();
-            case RoundingMode.FLOOR:     return (isNegative  && roundDigit !== 0) ? roundUp() : keep();
-            case RoundingMode.HALF_UP:   return roundDigit >= 5 ? roundUp() : keep();
-            case RoundingMode.HALF_DOWN: return roundDigit >  5 ? roundUp() : keep();
+            case RoundingMode.DOWN:
+                return keep();
+            case RoundingMode.UP:
+                return hasRemainder ? roundUp() : keep();
+            case RoundingMode.CEILING:
+                return (!isNegative && hasRemainder) ? roundUp() : keep();
+            case RoundingMode.FLOOR:
+                return (isNegative && hasRemainder) ? roundUp() : keep();
+            case RoundingMode.HALF_UP:
+                return roundDigit >= 5 ? roundUp() : keep();
+            case RoundingMode.HALF_DOWN:
+                return (roundDigit > 5 || (roundDigit === 5 && hasMoreDigitsAfterRoundDigit)) ? roundUp() : keep();
             case RoundingMode.HALF_EVEN: {
-                if (roundDigit > 5) return roundUp();
+                if (roundDigit > 5 || (roundDigit === 5 && hasMoreDigitsAfterRoundDigit)) return roundUp();
                 if (roundDigit < 5) return keep();
                 return scaledIntPart % 2n === 0n ? keep() : roundUp();
             }
